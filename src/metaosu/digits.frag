@@ -31,7 +31,7 @@ float PrintDigits(vec2 fragCoord, vec2 pixelCoord, vec2 fontSize, float value, f
 }
 
 // Multiples of 4x5 work best
-vec2 fontSize = vec2(4,5) * vec2(5,3);
+vec2 fontSize = vec2(4,5) * vec2(5,4);
 
 vec2 grid(int x, int y) { return fontSize.xx * vec2(1,ceil(fontSize.y/fontSize.x)) * vec2(x,y) + vec2(2); }
 
@@ -40,7 +40,7 @@ vec2 grid(int x, int y) { return fontSize.xx * vec2(1,ceil(fontSize.y/fontSize.x
 uniform vec2 u_resolution;
 uniform float u_time;
 
-const highp float loopTime = 1.0;
+const highp float loopTime = 10.0;
 // float a[5] = float[5](3.4, 4.2, 5.0, 5.2, 1.1);
 uniform float myValues[12];
 

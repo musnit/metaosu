@@ -1,10 +1,11 @@
 body {
   background: blueviolet;
+  margin: 0px;
 }
 
 #canvas-wrapper {
   height: 400px;
-  width: 600px;
+  width: 100%;
 }
 
 #canvas-wrapper canvas {

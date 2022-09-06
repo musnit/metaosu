@@ -4,19 +4,11 @@ import GlslCanvas from 'glslCanvas';
 const createCanvas = () => {
   const container = document.getElementById('canvas-wrapper');
   const canvas = document.createElement('canvas');
-
-  setCanvasSize(canvas);
+  canvas.width = window.innerWidth * window.devicePixelRatio;
+  canvas.height = '400' * window.devicePixelRatio;
 
   container.appendChild(canvas);
   return canvas;
-}
-
-const setCanvasSize = (canvas) => {
-  let screenHeight = window.innerHeight;
-  let screenWidth = window.innerWidth;
-
-  canvas.height = screenHeight;
-  canvas.width = screenWidth;
 }
 
 const run = () => {

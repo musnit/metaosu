@@ -1,12 +1,7 @@
 import './styles.css';
-import run from './metaosu';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './components/App';
 
-document.onreadystatechange = () => {
-  if (document.readyState === 'complete') {
-    const canvasWrapper = document.createElement('div');
-    canvasWrapper.id = 'canvas-wrapper';
-    document.body.appendChild(canvasWrapper);
-
-    run();
-  }
-}
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);

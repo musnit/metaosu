@@ -7,7 +7,7 @@ module.exports = {
   mode: 'development',
   devtool: 'inline-source-map',
   devServer: {
-    static: './dist',
+    static: 'public',
     hot: true,
   },
   module: {
@@ -40,11 +40,6 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: "./src/index.html",
       filename: "./index.html"
-    }),
-    new CopyPlugin({
-      patterns: [
-        { from: "public", to: "dist" },
-      ],
     }),
   ],
   output: {

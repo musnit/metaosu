@@ -44,16 +44,6 @@ uniform float u_time;
 uniform float myValues[12];
 
 /*
-const notes = [
-  ['green', 3000],
-  ['red', 7000],
-  ['blue', 8000],
-  ['green', 10000],
-  ['green', 11000],
-]
-*/
-
-/*
 parameters: px, wx
 
 f(cx,cy) = c
@@ -69,6 +59,16 @@ vec3 vertical_slice(vec2 frag, float pos, float width) {
   return vec3(leftSide.x * rightSide.x);
 }
 
+/*
+const notes = [
+  ['green', 3000],
+  ['red', 7000],
+  ['blue', 8000],
+  ['green', 10000],
+  ['green', 11000],
+]
+*/
+
 
 const vec3 red = vec3(1.0, 0.0, 0.0);
 const float fDecimalPlaces = 4.0;
@@ -78,7 +78,7 @@ uniform bool u_playing;
 uniform float u_playTime;
 uniform float u_startPoint;
 
-void main(){
+void main() {
 	vec2 frag = gl_FragCoord.xy / u_resolution;
   float time;
   if (u_playing) {
@@ -93,14 +93,14 @@ void main(){
     return;
   }
 
-  float time_rel = time / u_loopTime;
-
   vec3 barrier = vertical_slice(frag, 0.05, 0.02);
   if(bool(barrier)) {
     gl_FragColor = vec4(barrier, 1.0);
     return;
   }
 
+  float note_start = 2.0;
+  float time_rel = time / u_loopTime;
 	vec3 note = vertical_slice(frag, 1.0 - time_rel, 0.02) * vec3(0.0,0.0,u_blueness);
 
 	gl_FragColor = vec4(note, 1.0);

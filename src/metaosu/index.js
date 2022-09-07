@@ -15,6 +15,7 @@ const run = () => {
   const canvas = createCanvas();
   const sandbox = new GlslCanvas(canvas);
   sandbox.load(digits);
+  return sandbox;
 }
 
 export default run;

@@ -70,9 +70,10 @@ vec3 vertical_slice(vec2 frag, float pos, float width) {
   return vec3(leftSide.x * rightSide.x);
 }
 
-const vec3 blue = vec3(0.0, 0.0, 1.0);
+
 const vec3 red = vec3(1.0, 0.0, 0.0);
 const float fDecimalPlaces = 4.0;
+uniform float u_blueness;
 
 void main(){
 	vec2 frag = gl_FragCoord.xy / u_resolution;
@@ -92,7 +93,7 @@ void main(){
     return;
   }
 
-	vec3 note = vertical_slice(frag, 1.0 - time_rel, 0.02) * blue;
+	vec3 note = vertical_slice(frag, 1.0 - time_rel, 0.02) * vec3(0.0,0.0,u_blueness);
 
 	gl_FragColor = vec4(note, 1.0);
 }

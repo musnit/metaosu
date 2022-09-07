@@ -77,6 +77,17 @@ uniform float u_loopTime;
 uniform bool u_playing;
 uniform float u_playTime;
 uniform float u_startPoint;
+uniform float u_notes[6];
+
+vec3 render_note(float note_start, float note_duration, float time, vec2 frag) {
+  float note_end = note_start + note_duration;
+  if (time < note_start || time > note_end) {
+    return vec3(0.0);
+  }
+  float note_time = (time - note_start)/(note_end - note_start); // time of note animation from 0 -> 1
+	vec3 note = vertical_slice(frag, 1.0 - note_time, 0.02) * vec3(0.0,0.0,u_blueness);
+  return note;
+}
 
 void main() {
 	vec2 frag = gl_FragCoord.xy / u_resolution;
@@ -99,9 +110,12 @@ void main() {
     return;
   }
 
-  float note_start = 2.0;
-  float time_rel = time / u_loopTime;
-	vec3 note = vertical_slice(frag, 1.0 - time_rel, 0.02) * vec3(0.0,0.0,u_blueness);
+  for(int i=0; i < 6; i+=2)
+  {
+    float note_start = u_notes[i];
+    float note_duration = u_notes[i+1];
+    vec3 note = render_note(note_start, note_duration, time, frag);
+    gl_FragColor += vec4(note, 1.0);
+  }
 
-	gl_FragColor = vec4(note, 1.0);
 }

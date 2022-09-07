@@ -77,7 +77,10 @@ uniform float u_loopTime;
 uniform bool u_playing;
 uniform float u_playTime;
 uniform float u_startPoint;
-uniform float u_notes[6];
+
+const int MAX_NOTES = 24;
+uniform int u_noteCount;
+uniform float u_notes[MAX_NOTES];
 
 vec3 render_note(float note_start, float note_duration, float time, vec2 frag) {
   float note_end = note_start + note_duration;
@@ -99,19 +102,22 @@ void main() {
   }
 
   vec3 digits = red * vec3(PrintDigits(gl_FragCoord.xy, grid(0,0), fontSize, time, fDecimalPlaces));
-  if(bool(digits)) {
+  if (bool(digits)) {
     gl_FragColor = vec4(digits, 1.0);
     return;
   }
 
   vec3 barrier = vertical_slice(frag, 0.05, 0.02);
-  if(bool(barrier)) {
+  if (bool(barrier)) {
     gl_FragColor = vec4(barrier, 1.0);
     return;
   }
 
-  for(int i=0; i < 6; i+=2)
+  for (int i = 0; i < 6; i += 2)
   {
+    // if(i > u_noteCount) {
+    //   return;
+    // }
     float note_start = u_notes[i];
     float note_duration = u_notes[i+1];
     vec3 note = render_note(note_start, note_duration, time, frag);

@@ -6,8 +6,8 @@ const App = () => {
   const [blueness, setBlueness] = useState(1);
   const [sandbox, setSandbox] = useState(undefined);
   const [audioDuration, setAudioDuration] = useState(undefined);
-  const [timeUpdate, setTimeUpdate] = useState(undefined);
   const audioRef = useRef()
+
   const notes = [2, 1, 4, 1, 6, 1];
 
   useEffect(() => {
@@ -29,6 +29,7 @@ const App = () => {
     }
     sandbox.setUniform('u_loopTime', audioDuration);
     sandbox.setUniform('u_notes', ...notes);
+    // sandbox.setUniform('u_noteCount', notes.length);
   }, [sandbox, audioDuration]);
 
   const processSeek =(target) => {

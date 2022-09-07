@@ -40,7 +40,6 @@ vec2 grid(int x, int y) { return fontSize.xx * vec2(1,ceil(fontSize.y/fontSize.x
 uniform vec2 u_resolution;
 uniform float u_time;
 
-const highp float loopTime = 10.0;
 // float a[5] = float[5](3.4, 4.2, 5.0, 5.2, 1.1);
 uniform float myValues[12];
 
@@ -74,10 +73,13 @@ vec3 vertical_slice(vec2 frag, float pos, float width) {
 const vec3 red = vec3(1.0, 0.0, 0.0);
 const float fDecimalPlaces = 4.0;
 uniform float u_blueness;
+uniform float u_loopTime;
+uniform float u_seekTime;
 
 void main(){
 	vec2 frag = gl_FragCoord.xy / u_resolution;
-  float time_abs = mod(u_time, loopTime);
+  float time = u_seekTime + u_time;
+  float time_abs = mod(time, u_loopTime);
 
   vec3 digits = red * vec3(PrintDigits(gl_FragCoord.xy, grid(0,0), fontSize, time_abs, fDecimalPlaces));
   if(bool(digits)) {
@@ -85,7 +87,7 @@ void main(){
     return;
   }
 
-  float time_rel = time_abs / loopTime;
+  float time_rel = time_abs / u_loopTime;
 
   vec3 barrier = vertical_slice(frag, 0.05, 0.02);
   if(bool(barrier)) {

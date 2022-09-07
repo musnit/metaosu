@@ -74,20 +74,26 @@ const vec3 red = vec3(1.0, 0.0, 0.0);
 const float fDecimalPlaces = 4.0;
 uniform float u_blueness;
 uniform float u_loopTime;
-uniform float u_seekTime;
+uniform bool u_playing;
+uniform float u_playTime;
+uniform float u_startPoint;
 
 void main(){
 	vec2 frag = gl_FragCoord.xy / u_resolution;
-  float time = u_seekTime + u_time;
-  float time_abs = mod(time, u_loopTime);
+  float time;
+  if (u_playing) {
+    time = u_startPoint + mod(u_time - u_playTime, u_loopTime);
+  } else {
+    time = u_startPoint;
+  }
 
-  vec3 digits = red * vec3(PrintDigits(gl_FragCoord.xy, grid(0,0), fontSize, time_abs, fDecimalPlaces));
+  vec3 digits = red * vec3(PrintDigits(gl_FragCoord.xy, grid(0,0), fontSize, time, fDecimalPlaces));
   if(bool(digits)) {
     gl_FragColor = vec4(digits, 1.0);
     return;
   }
 
-  float time_rel = time_abs / u_loopTime;
+  float time_rel = time / u_loopTime;
 
   vec3 barrier = vertical_slice(frag, 0.05, 0.02);
   if(bool(barrier)) {

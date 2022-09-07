@@ -10,7 +10,11 @@ const App = () => {
 
   const audioRef = useRef()
 
+  // format is startTime, duration, lane (color)
   const notes = [
+    1, 1, 0,
+    1, 1, 1,
+    1, 1, 2,
     2, 1, 0,
     4, 1, 1,
     6, 1, 2,

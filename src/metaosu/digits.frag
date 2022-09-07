@@ -40,6 +40,25 @@ vec2 grid(int x, int y) { return fontSize.xx * vec2(1,ceil(fontSize.y/fontSize.x
 uniform vec2 u_resolution;
 uniform float u_time;
 
+const vec3 red = vec3(1.0, 0.0, 0.0);
+const vec3 green = vec3(0, 1.0, 0.0);
+const vec3 blue = vec3(0.0, 0.0, 1.0);
+uniform float u_note_intensity;
+uniform float u_loopTime;
+uniform bool u_playing;
+uniform float u_playTime;
+uniform float u_startPoint;
+uniform bool u_activeInput;
+
+const int MAX_NOTES = 64;
+uniform float u_noteCount;
+uniform float u_notes[MAX_NOTES];
+
+
+bool should_render_note(float note_start, float note_end, float time) {
+  return !(time < note_start || time > note_end);
+}
+
 /*
 parameters: px, wx
 
@@ -50,33 +69,20 @@ f(cx,cy) =
   step(cx - px, wx / 2.0)
 */
 
-vec3 vertical_slice(vec2 frag, float pos, float width) {
-  vec2 rightSide = vec2(step(pos - width / 2.0, frag.x), 1.0);
-  vec2 leftSide = vec2(step(frag.x - pos, width / 2.0 ), 1.0);
-  return vec3(leftSide.x * rightSide.x);
+vec3 vertical_slice(float fragX, float pos, float width) {
+  float rightSide = step(pos - width / 2.0, fragX);
+  float leftSide = step(fragX - pos, width / 2.0 );
+  return vec3(leftSide * rightSide);
 }
 
-const vec3 red = vec3(1.0, 0.0, 0.0);
-const vec3 green = vec3(0, 1.0, 0.0);
-const vec3 blue = vec3(0.0, 0.0, 1.0);
-const float fDecimalPlaces = 4.0;
-uniform float u_note_intensity;
-uniform float u_loopTime;
-uniform bool u_playing;
-uniform float u_playTime;
-uniform float u_startPoint;
-uniform bool u_activeInput;
+vec3 vertical_bar(vec2 frag, vec2 pos, vec2 size) {
+  vec2 bottomRight = step(pos - size / 2.0, frag);
+  vec2 topLeft = step(frag - pos, size / 2.0);
+  float draw = topLeft.x * bottomRight.x * topLeft.y * bottomRight.y;
+  return vec3(draw);
+}
 
-const int MAX_NOTES = 24;
-uniform float u_noteCount;
-uniform float u_notes[MAX_NOTES];
-
-vec3 render_note(float note_start, float note_duration, int note_lane, float time, vec2 frag) {
-  float note_end = note_start + note_duration;
-  if (time < note_start || time > note_end) {
-    return vec3(0.0);
-  }
-  float note_time = (time - note_start)/(note_end - note_start); // time of note animation from 0 -> 1
+vec3 render_note(float note_time, int note_lane, float time, vec2 frag) {
   vec3 note_color;
   if (note_lane == 0) {
     note_color = red;
@@ -85,11 +91,27 @@ vec3 render_note(float note_start, float note_duration, int note_lane, float tim
   } else {
     note_color = blue;
   }
-	vec3 note = vertical_slice(frag, 1.0 - note_time, 0.02) * note_color * u_note_intensity;
+  float x = 1.0 - note_time;
+  float y = float(note_lane + 1) * 0.3 - 0.1;
+	vec3 note = vertical_bar(frag, vec2(x, y), vec2(0.02, 0.3)) * note_color * u_note_intensity;
+  return note;
+}
+
+vec3 render_note_old(float note_time, int note_lane, float time, vec2 frag) {
+  vec3 note_color;
+  if (note_lane == 0) {
+    note_color = red;
+  } else if (note_lane == 1) {
+    note_color = green;
+  } else {
+    note_color = blue;
+  }
+	vec3 note = vertical_slice(frag.x, 1.0 - note_time, 0.02) * note_color * u_note_intensity;
   return note;
 }
 
 void main() {
+  gl_FragColor = vec4(0,0,0,1);
 	vec2 frag = gl_FragCoord.xy / u_resolution;
   float time;
   if (u_playing) {
@@ -98,20 +120,20 @@ void main() {
     time = u_startPoint;
   }
 
-  vec3 digits = red * vec3(PrintDigits(gl_FragCoord.xy, grid(0,0), fontSize, time, fDecimalPlaces));
+  vec3 digits = red * vec3(PrintDigits(gl_FragCoord.xy, grid(0,0), fontSize, time, 4.0));
   if (bool(digits)) {
     gl_FragColor = vec4(digits, 1.0);
     return;
   }
 
-  vec3 barrier = vertical_slice(frag, 0.05, 0.02);
+  vec3 barrier = vertical_slice(frag.x, 0.05, 0.02);
   if (bool(barrier)) {
     gl_FragColor = vec4(barrier, 1.0);
     return;
   }
 
   if(u_activeInput) {
-    vec3 inputSlice = vertical_slice(frag, 0.05, 0.04) * vec3(0.5 ,0.5 , 0.5);
+    vec3 inputSlice = vertical_slice(frag.x, 0.05, 0.04) * vec3(0.5 ,0.5 , 0.5);
     if (bool(inputSlice)) {
       gl_FragColor = vec4(inputSlice, 1.0);
       return;
@@ -126,8 +148,12 @@ void main() {
     float note_start = u_notes[i];
     float note_duration = u_notes[i+1];
     int note_lane = int(u_notes[i+2]);
-    vec3 note = render_note(note_start, note_duration, note_lane, time, frag);
-    gl_FragColor += vec4(note, 1.0);
+    float note_end = note_start + note_duration;
+    if(should_render_note(note_start, note_end, time)) {
+      float note_time = (time - note_start)/(note_end - note_start); // time of note animation from 0 -> 1
+      vec3 note = render_note(note_time, note_lane, time, frag);
+      gl_FragColor += vec4(note, 1.0);
+    }
   }
 
 }

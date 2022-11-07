@@ -40,6 +40,7 @@ vec2 grid(int x, int y) { return fontSize.xx * vec2(1,ceil(fontSize.y/fontSize.x
 uniform vec2 u_resolution;
 uniform float u_time;
 
+const vec3 yellow = vec3(1.0, 0.851, 0.0);
 const vec3 red = vec3(1.0, 0.0, 0.0);
 const vec3 green = vec3(0, 1.0, 0.0);
 const vec3 blue = vec3(0.0, 0.0, 1.0);
@@ -54,6 +55,11 @@ const int MAX_NOTES = 64;
 uniform float u_noteCount;
 uniform float u_notes[MAX_NOTES];
 
+const int MAX_INPUTS = 512;
+uniform float u_mouseDownCount;
+uniform float u_mouseDowns[MAX_INPUTS];
+uniform float u_mouseUpCount;
+uniform float u_mouseUps[MAX_INPUTS];
 
 bool should_render_note(float note_start, float note_end, float time) {
   return !(time < note_start || time > note_end);
@@ -75,12 +81,13 @@ vec3 vertical_slice(float fragX, float pos, float width) {
   return vec3(leftSide * rightSide);
 }
 
-vec3 vertical_bar(vec2 frag, vec2 pos, vec2 size) {
+vec3 rect(vec2 frag, vec2 pos, vec2 size) {
   vec2 bottomRight = step(pos - size / 2.0, frag);
   vec2 topLeft = step(frag - pos, size / 2.0);
   float draw = topLeft.x * bottomRight.x * topLeft.y * bottomRight.y;
   return vec3(draw);
 }
+
 
 vec3 render_note(float note_time, int note_lane, float time, vec2 frag) {
   vec3 note_color;
@@ -93,7 +100,7 @@ vec3 render_note(float note_time, int note_lane, float time, vec2 frag) {
   }
   float x = 1.0 - note_time;
   float y = float(note_lane + 1) * 0.3 - 0.1;
-	vec3 note = vertical_bar(frag, vec2(x, y), vec2(0.02, 0.3)) * note_color * u_note_intensity;
+	vec3 note = rect(frag, vec2(x, y), vec2(0.02, 0.3)) * note_color * u_note_intensity;
   return note;
 }
 
@@ -108,6 +115,38 @@ vec3 render_note_old(float note_time, int note_lane, float time, vec2 frag) {
   }
 	vec3 note = vertical_slice(frag.x, 1.0 - note_time, 0.02) * note_color * u_note_intensity;
   return note;
+}
+
+int notes_slipped(float time) {
+  int slips = 0;
+  for (int i = 0; i < MAX_NOTES; i += 3)
+  {
+    if(i >= int(u_noteCount)) {
+      return slips;
+    }
+    float note_start = u_notes[i];
+    float note_duration = u_notes[i+1];
+    int note_lane = int(u_notes[i+2]);
+    float note_end = note_start + note_duration;
+    if(time > note_end) {
+      slips++;
+    }
+  }
+  return slips;
+}
+
+vec3 render_slips(vec2 frag, float time) {
+  int slips = notes_slipped(time);
+  vec3 slips_vec = vec3(0,0,0);
+
+  for (int i = 0; i < MAX_NOTES; i++)
+  {
+    if(i >= int(slips)) {
+      return slips_vec;
+    }
+    slips_vec += rect(frag, vec2(0.925, 0.9  - (float(i) * 0.1)), vec2(0.05, 0.075)) * yellow;
+  }
+  return slips_vec;
 }
 
 void main() {
@@ -138,6 +177,12 @@ void main() {
       gl_FragColor = vec4(inputSlice, 1.0);
       return;
     }
+  }
+
+  vec3 lives = render_slips(frag, time);
+  if (bool(lives)) {
+    gl_FragColor = vec4(lives, 1.0);
+    return;
   }
 
   for (int i = 0; i < MAX_NOTES; i += 3)

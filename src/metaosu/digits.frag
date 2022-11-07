@@ -75,6 +75,14 @@ f(cx,cy) =
   step(cx - px, wx / 2.0)
 */
 
+float calcTime(float time) {
+  if (u_playing) {
+    return u_startPoint + mod(time - u_playTime, u_loopTime);
+  } else {
+    return u_startPoint;
+  }
+}
+
 vec3 vertical_slice(float fragX, float pos, float width) {
   float rightSide = step(pos - width / 2.0, fragX);
   float leftSide = step(fragX - pos, width / 2.0 );
@@ -141,10 +149,13 @@ vec3 render_slips(vec2 frag, float time) {
 
   for (int i = 0; i < MAX_NOTES; i++)
   {
-    if(i >= int(slips)) {
+    if(i >= int(u_mouseDownCount)) {
       return slips_vec;
     }
-    slips_vec += rect(frag, vec2(0.925, 0.9  - (float(i) * 0.1)), vec2(0.05, 0.075)) * yellow;
+    float mouseDownTime = u_mouseDowns[i];
+    if(mouseDownTime >= 1.0) {
+      slips_vec += rect(frag, vec2(0.925, 0.9  - (float(i) * 0.1)), vec2(0.05, 0.075)) * yellow;
+    }
   }
   return slips_vec;
 }
@@ -152,12 +163,7 @@ vec3 render_slips(vec2 frag, float time) {
 void main() {
   gl_FragColor = vec4(0,0,0,1);
 	vec2 frag = gl_FragCoord.xy / u_resolution;
-  float time;
-  if (u_playing) {
-    time = u_startPoint + mod(u_time - u_playTime, u_loopTime);
-  } else {
-    time = u_startPoint;
-  }
+  float time = calcTime(u_time);
 
   vec3 digits = red * vec3(PrintDigits(gl_FragCoord.xy, grid(0,0), fontSize, time, 4.0));
   if (bool(digits)) {

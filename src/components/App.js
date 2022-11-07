@@ -39,21 +39,25 @@ const App = () => {
     sandbox.setUniform('u_note_intensity', noteIntensity);
   }, [sandbox, noteIntensity]);
 
-  useEffect(() => {
-    if (!sandbox) {
-      return;
-    }
-    sandbox.setUniform('u_mouseDowns', ...mouseDowns);
-    sandbox.setUniform('u_mouseDownCount', parseFloat(mouseDowns.length));
-  }, [sandbox, mouseDowns]);
+  const setArrayUniform = (sandbox, name, array) => {
+    sandbox.setUniform(name, ...mouseDowns, ...[0,0,0,0]);
+  }
 
   useEffect(() => {
     if (!sandbox) {
       return;
     }
-    sandbox.setUniform('u_mouseUps', ...mouseUps);
+    sandbox.setUniform('u_mouseDownCount', parseFloat(mouseDowns.length));
+    setArrayUniform(sandbox, 'u_mouseDowns', mouseDowns);
+  }, [sandbox, mouseDowns.length]);
+
+  useEffect(() => {
+    if (!sandbox) {
+      return;
+    }
     sandbox.setUniform('u_mouseUpCount', parseFloat(mouseUps.length));
-  }, [sandbox, mouseUps]);
+    setArrayUniform(sandbox, 'u_mouseUps', mouseUps);
+  }, [sandbox, mouseUps.length]);
 
   useEffect(() => {
     if (!sandbox) {

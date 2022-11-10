@@ -84,13 +84,6 @@ const App = () => {
   const secondsPassed = () => (performance.now() - sandbox.timeLoad) / 1000;
 
   const calcGameTime = (time) => {
-    console.log({
-      time,
-      playTime,
-      audioDuration,
-      startPoint,
-      totalTime: secondsPassed(),
-    })
     if (playing) {
       return startPoint + ((secondsPassed() - playTime) % audioDuration);
     } else {

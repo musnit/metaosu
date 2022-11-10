@@ -4,6 +4,9 @@ import run from '../metaosu';
 const App = () => {
 
   const [noteIntensity, setNoteIntensity] = useState(1);
+  const [startPoint, setStartPoint] = useState(0);
+  const [playTime, setPlayTime] = useState(0);
+  const [playing, setPlaying] = useState(false);
   const [sandbox, setSandbox] = useState(undefined);
   const [audioDuration, setAudioDuration] = useState(undefined);
   const [activeInput, setActiveInput] = useState(false);
@@ -78,13 +81,31 @@ const App = () => {
     sandbox.setUniform('u_noteCount', parseFloat(notes.length));
   }, [sandbox, audioDuration]);
 
-  const playTime = () => (performance.now() - sandbox.timeLoad) / 1000;
+  const secondsPassed = () => (performance.now() - sandbox.timeLoad) / 1000;
 
-  const processSeek =(target) => {
+  const calcGameTime = (time) => {
+    console.log({
+      time,
+      playTime,
+      audioDuration,
+      startPoint,
+      totalTime: secondsPassed(),
+    })
+    if (playing) {
+      return startPoint + ((secondsPassed() - playTime) % audioDuration);
+    } else {
+      return startPoint;
+    }
+  }
+
+  const processSeek = (target) => {
     if (!sandbox) {
       return;
     }
-    sandbox.setUniform('u_playTime', playTime());
+    const time = secondsPassed();
+    sandbox.setUniform('u_playTime', time);
+    setPlayTime(time);
+    setStartPoint(target.currentTime);
     sandbox.setUniform('u_startPoint', target.currentTime);
   }
 
@@ -93,6 +114,7 @@ const App = () => {
       return;
     }
     processSeek(target);
+    setPlaying(true);
     sandbox.setUniform('u_playing', 1);
   }
 
@@ -101,17 +123,20 @@ const App = () => {
       return;
     }
     processSeek(target);
+    setPlaying(false);
     sandbox.setUniform('u_playing', 0);
   }
 
   const addMouseDown = () => {
     setActiveInput(true);
-    setMouseDowns(mouseDowns.concat(playTime()));
+    const gameTime = calcGameTime(secondsPassed());
+    setMouseDowns(mouseDowns.concat(gameTime));
   }
 
   const addMouseUp = () => {
     setActiveInput(false);
-    setMouseUps(mouseUps.concat(playTime()));
+    const gameTime = calcGameTime(secondsPassed());
+    setMouseUps(mouseUps.concat(gameTime));
   }
 
   const clearInputs = () => {
@@ -130,7 +155,16 @@ const App = () => {
     <div>
      Note Intensity: <input type="range" value={noteIntensity} min="0" max="1" step="0.1" onChange={e=>setNoteIntensity(parseFloat(e.target.value))}></input>
     </div>
-    <audio autoPlay loop onEnded={()=>console.log('ended')} controls ref={audioRef} onPause={e=>processPause(e.target)} onPlay={e=>processPlay(e.target)} onSeeked={e=>processSeek(e.target)} onDurationChange={e=>setAudioDuration(e.target.duration)}>
+    <audio
+      autoPlay
+      loop
+      onEnded={()=>console.log('ended')}
+      controls
+      ref={audioRef}
+      onPause={e=>processPause(e.target)}
+      onPlay={e=>processPlay(e.target)}
+      onSeeked={e=>processSeek(e.target)}
+      onDurationChange={e=>setAudioDuration(e.target.duration)}>
       <source src="loop.mp3" type="audio/mpeg" />
     </audio>
     <div>

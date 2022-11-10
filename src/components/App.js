@@ -40,7 +40,10 @@ const App = () => {
   }, [sandbox, noteIntensity]);
 
   const setArrayUniform = (sandbox, name, array) => {
-    sandbox.setUniform(name, ...mouseDowns, ...[0,0,0,0]);
+    // Add a suffix to ensure array length always > 4 so that
+    // the sandbox library always sends an array rather than a
+    // vec2/3/4
+    sandbox.setUniform(name, ...array, ...[0,0,0,0]);
   }
 
   useEffect(() => {

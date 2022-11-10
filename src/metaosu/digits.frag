@@ -83,9 +83,9 @@ float calcTime(float time) {
   }
 }
 
-vec3 vertical_slice(float fragX, float pos, float width) {
-  float rightSide = step(pos - width / 2.0, fragX);
-  float leftSide = step(fragX - pos, width / 2.0 );
+vec3 slice(float frag, float pos, float length) {
+  float rightSide = step(pos - length / 2.0, frag);
+  float leftSide = step(frag - pos, length / 2.0 );
   return vec3(leftSide * rightSide);
 }
 
@@ -95,7 +95,6 @@ vec3 rect(vec2 frag, vec2 pos, vec2 size) {
   float draw = topLeft.x * bottomRight.x * topLeft.y * bottomRight.y;
   return vec3(draw);
 }
-
 
 vec3 render_note(float note_time, int note_lane, float time, vec2 frag) {
   vec3 note_color;
@@ -121,7 +120,7 @@ vec3 render_note_old(float note_time, int note_lane, float time, vec2 frag) {
   } else {
     note_color = blue;
   }
-	vec3 note = vertical_slice(frag.x, 1.0 - note_time, 0.02) * note_color * u_note_intensity;
+	vec3 note = slice(frag.x, 1.0 - note_time, 0.02) * note_color * u_note_intensity;
   return note;
 }
 
@@ -143,6 +142,11 @@ int notes_slipped(float time) {
   return slips;
 }
 
+// This function loops over all potential slips, and adds
+// the fragment color whenever it finds a slip.
+// A potentially better way to do it may be to just calculate which slip
+// the given frament is in, if any, and then check that exact slip
+// to decide whether to color it in or not. See below function for an example of this.
 vec3 render_slips(vec2 frag, float time) {
   int slips = notes_slipped(time);
   vec3 slips_vec = vec3(0,0,0);
@@ -154,10 +158,28 @@ vec3 render_slips(vec2 frag, float time) {
     }
     float mouseDownTime = u_mouseDowns[i];
     if(mouseDownTime >= 1.0) {
-      slips_vec += rect(frag, vec2(0.925, 0.9  - (float(i) * 0.1)), vec2(0.05, 0.075)) * yellow;
+      slips_vec += rect(frag, vec2(0.925, 0.9  - (float(i) * 0.15)), vec2(0.05, 0.075)) * yellow;
     }
   }
   return slips_vec;
+}
+
+vec3 fragment_slip_number(vec2 frag, float time) {
+  vec3 xValid = slice(frag.x, 0.925, 0.05);
+  float slipPoint = (1.0 - frag.y) / 0.15;
+  float coloredRegion = mod(slipPoint, 1.0);
+  float colored = step(0.5, coloredRegion);
+  int slipNumber = int(floor(slipPoint));
+  // float evenRegion = mod(slipNumber, 2.0);
+  float mouseDownTime = 0.0;
+  for (int i = 0; i < MAX_NOTES; i++)
+  {
+    if(i == slipNumber) {
+      mouseDownTime = u_mouseDowns[i];
+    }
+  }
+  float mouseDownTimeValid = step(1.0, mouseDownTime);
+  return xValid * mouseDownTimeValid * yellow * colored;
 }
 
 void main() {
@@ -171,21 +193,21 @@ void main() {
     return;
   }
 
-  vec3 barrier = vertical_slice(frag.x, 0.05, 0.02);
+  vec3 barrier = slice(frag.x, 0.05, 0.02);
   if (bool(barrier)) {
     gl_FragColor = vec4(barrier, 1.0);
     return;
   }
 
   if(u_activeInput) {
-    vec3 inputSlice = vertical_slice(frag.x, 0.05, 0.04) * vec3(0.5 ,0.5 , 0.5);
+    vec3 inputSlice = slice(frag.x, 0.05, 0.04) * vec3(0.5 ,0.5 , 0.5);
     if (bool(inputSlice)) {
       gl_FragColor = vec4(inputSlice, 1.0);
       return;
     }
   }
 
-  vec3 lives = render_slips(frag, time);
+  vec3 lives = fragment_slip_number(frag, time);
   if (bool(lives)) {
     gl_FragColor = vec4(lives, 1.0);
     return;

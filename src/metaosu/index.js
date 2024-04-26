@@ -1,5 +1,7 @@
 import digits from './digits.frag';
 import GlslCanvas from 'glslCanvas';
+import { setProgram } from './shaderUtils.js';
+import { setupWebGLState, defineBuffers } from './glSetup.js';
 
 const createCanvas = () => {
   const container = document.getElementById('canvas-wrapper');

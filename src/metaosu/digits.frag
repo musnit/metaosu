@@ -2,6 +2,9 @@
 precision mediump float;
 #endif
 
+uniform vec3 lightPosition;
+uniform vec3 viewPosition;
+
 // libs
 float DigitBin(const in int x)
 {
@@ -50,6 +53,9 @@ uniform bool u_playing;
 uniform float u_playTime;
 uniform float u_startPoint;
 uniform bool u_activeInput;
+
+vec3 ambientLightIntensity = vec3(0.3, 0.3, 0.3);
+vec3 lightColor = vec3(1, 1, 1);
 
 const int MAX_NOTES = 64;
 uniform float u_noteCount;
@@ -183,6 +189,14 @@ vec3 fragment_slip_number(vec2 frag, float time) {
 }
 
 void main() {
+  vec3 norm = normalize(vNormal);
+  vec3 lightDir = normalize(lightPosition - vFragPosition);
+  float diff = max(dot(norm, lightDir), 0.0);
+  vec3 diffuse = diff * lightColor;
+  vec3 viewDir = normalize(viewPosition - vFragPosition);
+  vec3 reflectDir = reflect(-lightDir, norm);
+  float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+  vec3 specular = spec * lightColor;
   gl_FragColor = vec4(0,0,0,1);
 	vec2 frag = gl_FragCoord.xy / u_resolution;
   float time = calcTime(u_time);
@@ -229,4 +243,6 @@ void main() {
     }
   }
 
+  vec3 result = ambientLightIntensity + diffuse + specular;
+  gl_FragColor = vec4(result, 1.0);
 }

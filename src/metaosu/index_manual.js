@@ -52,25 +52,23 @@ const setProgram = (gl, vertexShader, fragmentShader) => {
 const render = (gl, program, canvas, startTimestamp, currentTimestamp) => {
   gl.clearColor(0,0,0,1);
   gl.clear(gl.COLOR_BUFFER_BIT);
-  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
   setTimeUniform(gl, program, startTimestamp, currentTimestamp);
   requestAnimationFrame((currentTimestamp) => render(gl, program, canvas, startTimestamp, currentTimestamp));
 }
 
 const defineVertexBuffer = (gl, program) => {
-    let texCoordsLoc = gl.getAttribLocation(program, 'a_texcoord');
-    const texCoords = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texCoords);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(texCoordsLoc);
-    gl.vertexAttribPointer(texCoordsLoc, 2, gl.FLOAT, false, 0, 0);
-
-    let verticesLoc = gl.getAttribLocation(program, 'a_position');
-    const vertices = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertices);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0]), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(verticesLoc);
-    gl.vertexAttribPointer(verticesLoc, 2, gl.FLOAT, false, 0, 0);
+    let buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    const verticesAndTexCoords = [-1.0, -1.0, 0.0, 0.0, 1.0, -1.0, 1.0, 0.0, -1.0, 1.0, 0.0, 1.0, -1.0, 1.0, 0.0, 1.0, 1.0, -1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verticesAndTexCoords), gl.STATIC_DRAW);
+    let stride = 4 * Float32Array.BYTES_PER_ELEMENT;
+    let posLocation = gl.getAttribLocation(program, 'a_position');
+    let texLocation = gl.getAttribLocation(program, 'a_texcoord');
+    gl.vertexAttribPointer(posLocation, 2, gl.FLOAT, false, stride, 0);
+    gl.vertexAttribPointer(texLocation, 2, gl.FLOAT, false, stride, 2 * Float32Array.BYTES_PER_ELEMENT);
+    gl.enableVertexAttribArray(posLocation);
+    gl.enableVertexAttribArray(texLocation);
 }
 
 const setResolutionUniform = (gl, program, canvas) => {

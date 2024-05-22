@@ -208,8 +208,9 @@ void main() {
   float time = calcTime(u_time);
 
   vec3 sparkles = vec3(0);
-  for (float i = 0.0; i < u_sparkleCount; i++) {
-    sparkles += generateSparkle(frag, time * u_sparkleSpeed, i);
+  for (int i = 0; i < 100; i++) {
+    if (float(i) >= u_sparkleCount) break;
+    sparkles += generateSparkle(frag, time * u_sparkleSpeed, float(i));
   }
   gl_FragColor.rgb += sparkles;
 

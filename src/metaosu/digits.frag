@@ -61,6 +61,10 @@ uniform float u_mouseDowns[MAX_INPUTS];
 uniform float u_mouseUpCount;
 uniform float u_mouseUps[MAX_INPUTS];
 
+uniform float u_sparkleCount;
+uniform vec2 u_sparkleSize;
+uniform float u_sparkleSpeed;
+
 bool should_render_note(float note_start, float note_end, float time) {
   return !(time < note_start || time > note_end);
 }
@@ -94,6 +98,22 @@ vec3 rect(vec2 frag, vec2 pos, vec2 size) {
   vec2 topLeft = step(frag - pos, size / 2.0);
   float draw = topLeft.x * bottomRight.x * topLeft.y * bottomRight.y;
   return vec3(draw);
+}
+
+vec3 generateSparkle(vec2 frag, float time, float index) {
+  float seed = time + index;
+  vec2 sparklePos = vec2(fract(sin(seed * 12.9898) * 43758.5453),
+                         fract(sin(seed * 78.2330) * 43758.5453));
+
+  float sparkleSize = u_sparkleSize.x + fract(sin(seed * 64.7890) * 43758.5453) * (u_sparkleSize.y - u_sparkleSize.x);
+
+  vec2 sparkleCenter = sparklePos * (1.0 - sparkleSize);
+  vec2 sparkleFragPos = frag - sparkleCenter;
+
+  float sparkleRadius = length(sparkleFragPos) / (sparkleSize * 0.5);
+  float sparkleMask = 1.0 - smoothstep(0.9, 1.0, sparkleRadius);
+
+  return vec3(1.0) * sparkleMask;
 }
 
 vec3 render_note(float note_time, int note_lane, float time, vec2 frag) {
@@ -186,6 +206,13 @@ void main() {
   gl_FragColor = vec4(0,0,0,1);
 	vec2 frag = gl_FragCoord.xy / u_resolution;
   float time = calcTime(u_time);
+
+  vec3 sparkles = vec3(0);
+  for (int i = 0; i < 100; i++) {
+    if (float(i) >= u_sparkleCount) break;
+    sparkles += generateSparkle(frag, time * u_sparkleSpeed, float(i));
+  }
+  gl_FragColor.rgb += sparkles;
 
   vec3 digits = red * vec3(PrintDigits(gl_FragCoord.xy, grid(0,0), fontSize, time, 4.0));
   if (bool(digits)) {
